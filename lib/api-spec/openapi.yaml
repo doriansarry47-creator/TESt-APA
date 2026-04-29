@@ -1,0 +1,766 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: APA Medical Assessment API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: patients
+    description: Patient management
+  - name: assessments
+    description: Clinical assessments
+  - name: reports
+    description: Clinical reports
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /patients:
+    get:
+      operationId: listPatients
+      tags: [patients]
+      summary: List all patients
+      responses:
+        "200":
+          description: List of patients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Patient"
+    post:
+      operationId: createPatient
+      tags: [patients]
+      summary: Create a new patient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePatientBody"
+      responses:
+        "201":
+          description: Created patient
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+
+  /patients/{id}:
+    get:
+      operationId: getPatient
+      tags: [patients]
+      summary: Get patient by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Patient
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+        "404":
+          description: Not found
+    put:
+      operationId: updatePatient
+      tags: [patients]
+      summary: Update patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePatientBody"
+      responses:
+        "200":
+          description: Updated patient
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+    delete:
+      operationId: deletePatient
+      tags: [patients]
+      summary: Delete patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /patients/{id}/assessments:
+    get:
+      operationId: listPatientAssessments
+      tags: [assessments]
+      summary: List assessments for a patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of assessments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assessment"
+
+  /assessments:
+    post:
+      operationId: createAssessment
+      tags: [assessments]
+      summary: Create a new clinical assessment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAssessmentBody"
+      responses:
+        "201":
+          description: Created assessment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assessment"
+
+  /assessments/{id}:
+    get:
+      operationId: getAssessment
+      tags: [assessments]
+      summary: Get assessment by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Assessment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assessment"
+        "404":
+          description: Not found
+    put:
+      operationId: updateAssessment
+      tags: [assessments]
+      summary: Update assessment data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAssessmentBody"
+      responses:
+        "200":
+          description: Updated assessment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assessment"
+
+  /assessments/{id}/complete:
+    post:
+      operationId: completeAssessment
+      tags: [assessments]
+      summary: Complete an assessment and generate scores and recommendations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Completed assessment with scores and recommendations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assessment"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [reports]
+      summary: Get global dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /patients/{id}/progress:
+    get:
+      operationId: getPatientProgress
+      tags: [reports]
+      summary: Get longitudinal progress data for a patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Patient progress over time
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientProgress"
+
+  /patients/{id}/latest-assessment:
+    get:
+      operationId: getLatestAssessment
+      tags: [assessments]
+      summary: Get the most recent completed assessment for a patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Latest assessment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assessment"
+        "404":
+          description: No assessment found
+
+  /risk-summary:
+    get:
+      operationId: getRiskSummary
+      tags: [reports]
+      summary: Get summary of patients by risk level
+      responses:
+        "200":
+          description: Risk summary grouped by level
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskSummary"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    Patient:
+      type: object
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: string
+        gender:
+          type: string
+          enum: [male, female, other]
+        height:
+          type: number
+          description: Height in cm
+        weight:
+          type: number
+          description: Weight in kg
+        primaryCondition:
+          type: string
+          enum: [tca_anorexia, tca_bulimia, tca_binge, addiction_alcohol, addiction_substances, addiction_behavioral, deconditioning, chronic_fatigue, other]
+        secondaryConditions:
+          type: array
+          items:
+            type: string
+        medicalHistory:
+          type: string
+        currentMedications:
+          type: string
+        referringDoctor:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - firstName
+        - lastName
+        - primaryCondition
+        - createdAt
+
+    CreatePatientBody:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: string
+        gender:
+          type: string
+          enum: [male, female, other]
+        height:
+          type: number
+        weight:
+          type: number
+        primaryCondition:
+          type: string
+          enum: [tca_anorexia, tca_bulimia, tca_binge, addiction_alcohol, addiction_substances, addiction_behavioral, deconditioning, chronic_fatigue, other]
+        secondaryConditions:
+          type: array
+          items:
+            type: string
+        medicalHistory:
+          type: string
+        currentMedications:
+          type: string
+        referringDoctor:
+          type: string
+      required:
+        - firstName
+        - lastName
+        - primaryCondition
+
+    Assessment:
+      type: object
+      properties:
+        id:
+          type: integer
+        patientId:
+          type: integer
+        status:
+          type: string
+          enum: [draft, in_progress, completed]
+        assessmentDate:
+          type: string
+        clinician:
+          type: string
+        bodyComposition:
+          $ref: "#/components/schemas/BodyCompositionData"
+        muscularFunction:
+          $ref: "#/components/schemas/MuscularFunctionData"
+        cardioRespiratory:
+          $ref: "#/components/schemas/CardioRespiratoryData"
+        mobilityFunction:
+          $ref: "#/components/schemas/MobilityFunctionData"
+        psychologicalStatus:
+          $ref: "#/components/schemas/PsychologicalData"
+        addictionBehavior:
+          $ref: "#/components/schemas/AddictionBehaviorData"
+        globalScore:
+          type: number
+          description: Overall functional score 0-100
+        domainScores:
+          $ref: "#/components/schemas/DomainScores"
+        riskLevel:
+          type: string
+          enum: [red, orange, green]
+        riskFlags:
+          type: array
+          items:
+            type: string
+        recommendations:
+          $ref: "#/components/schemas/APARecommendations"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - patientId
+        - status
+        - createdAt
+
+    CreateAssessmentBody:
+      type: object
+      properties:
+        patientId:
+          type: integer
+        clinician:
+          type: string
+        assessmentDate:
+          type: string
+      required:
+        - patientId
+
+    UpdateAssessmentBody:
+      type: object
+      properties:
+        clinician:
+          type: string
+        status:
+          type: string
+          enum: [draft, in_progress, completed]
+        bodyComposition:
+          $ref: "#/components/schemas/BodyCompositionData"
+        muscularFunction:
+          $ref: "#/components/schemas/MuscularFunctionData"
+        cardioRespiratory:
+          $ref: "#/components/schemas/CardioRespiratoryData"
+        mobilityFunction:
+          $ref: "#/components/schemas/MobilityFunctionData"
+        psychologicalStatus:
+          $ref: "#/components/schemas/PsychologicalData"
+        addictionBehavior:
+          $ref: "#/components/schemas/AddictionBehaviorData"
+
+    BodyCompositionData:
+      type: object
+      properties:
+        bmi:
+          type: number
+        waistCircumference:
+          type: number
+        hipCircumference:
+          type: number
+        unintentionalWeightLoss:
+          type: boolean
+        weightLossKg:
+          type: number
+        weightLossTimeframe:
+          type: string
+        malnutritionSuspicion:
+          type: boolean
+        mnaScore:
+          type: number
+        notes:
+          type: string
+
+    MuscularFunctionData:
+      type: object
+      properties:
+        gripStrengthDominant:
+          type: number
+          description: Grip strength in kg
+        gripStrengthNonDominant:
+          type: number
+        sitToStand30s:
+          type: integer
+          description: Number of repetitions in 30 seconds
+        sarcopeniaRisk:
+          type: string
+          enum: [low, moderate, high]
+        globalMuscularEndurance:
+          type: string
+          enum: [poor, below_average, average, above_average, excellent]
+        notes:
+          type: string
+
+    CardioRespiratoryData:
+      type: object
+      properties:
+        sixMinuteWalkDistance:
+          type: number
+          description: Distance walked in 6 minutes (meters)
+        borgScaleRating:
+          type: integer
+          description: Perceived exertion 6-20
+        heartRateAtRest:
+          type: integer
+        heartRateAfterExercise:
+          type: integer
+        heartRateRecovery:
+          type: integer
+        postEffortFatigue:
+          type: string
+          enum: [none, mild, moderate, severe]
+        exerciseIntolerance:
+          type: boolean
+        notes:
+          type: string
+
+    MobilityFunctionData:
+      type: object
+      properties:
+        staticBalance:
+          type: string
+          enum: [poor, moderate, good, excellent]
+        dynamicBalance:
+          type: string
+          enum: [poor, moderate, good, excellent]
+        functionalRangeOfMotion:
+          type: string
+          enum: [limited, reduced, normal, full]
+        fallRisk:
+          type: string
+          enum: [low, moderate, high]
+        notes:
+          type: string
+
+    PsychologicalData:
+      type: object
+      properties:
+        motivationLevel:
+          type: integer
+          minimum: 0
+          maximum: 10
+        bodyImageAnxiety:
+          type: integer
+          minimum: 0
+          maximum: 10
+        bodyImageDisturbance:
+          type: boolean
+        compulsiveExercise:
+          type: boolean
+        impulsivity:
+          type: integer
+          minimum: 0
+          maximum: 10
+        selfEfficacy:
+          type: integer
+          minimum: 0
+          maximum: 10
+        qualityOfLife:
+          type: integer
+          minimum: 0
+          maximum: 10
+        psychologicalDistress:
+          type: string
+          enum: [none, mild, moderate, severe]
+        notes:
+          type: string
+
+    AddictionBehaviorData:
+      type: object
+      properties:
+        cravingLevel:
+          type: integer
+          minimum: 0
+          maximum: 10
+        recentRelapse:
+          type: boolean
+        effortAvoidance:
+          type: boolean
+        emotionalRegulation:
+          type: string
+          enum: [poor, moderate, good]
+        substanceCurrentUse:
+          type: boolean
+        addictionStabilized:
+          type: boolean
+        notes:
+          type: string
+
+    DomainScores:
+      type: object
+      properties:
+        strength:
+          type: number
+          minimum: 0
+          maximum: 100
+        endurance:
+          type: number
+          minimum: 0
+          maximum: 100
+        mobility:
+          type: number
+          minimum: 0
+          maximum: 100
+        psychologicalState:
+          type: number
+          minimum: 0
+          maximum: 100
+        effortTolerance:
+          type: number
+          minimum: 0
+          maximum: 100
+        clinicalRisk:
+          type: number
+          minimum: 0
+          maximum: 100
+      required:
+        - strength
+        - endurance
+        - mobility
+        - psychologicalState
+        - effortTolerance
+        - clinicalRisk
+
+    APARecommendations:
+      type: object
+      properties:
+        programDurationWeeks:
+          type: integer
+        weeklyFrequency:
+          type: integer
+        sessionDurationMinutes:
+          type: integer
+        recommendedIntensity:
+          type: string
+          enum: [very_light, light, moderate, moderate_vigorous, vigorous]
+        exerciseTypes:
+          type: array
+          items:
+            type: string
+        contraindications:
+          type: array
+          items:
+            type: string
+        precautions:
+          type: array
+          items:
+            type: string
+        progressionPlan:
+          type: string
+        weeklyPlan:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeeklyPlanItem"
+
+    WeeklyPlanItem:
+      type: object
+      properties:
+        week:
+          type: integer
+        objective:
+          type: string
+        exercises:
+          type: array
+          items:
+            type: string
+        targetIntensity:
+          type: string
+        notes:
+          type: string
+
+    DashboardStats:
+      type: object
+      properties:
+        totalPatients:
+          type: integer
+        totalAssessments:
+          type: integer
+        redAlertCount:
+          type: integer
+        orangeAlertCount:
+          type: integer
+        greenCount:
+          type: integer
+        averageGlobalScore:
+          type: number
+        conditionBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              condition:
+                type: string
+              count:
+                type: integer
+            required:
+              - condition
+              - count
+        recentAssessments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Assessment"
+      required:
+        - totalPatients
+        - totalAssessments
+        - redAlertCount
+        - orangeAlertCount
+        - greenCount
+        - averageGlobalScore
+        - conditionBreakdown
+        - recentAssessments
+
+    PatientProgress:
+      type: object
+      properties:
+        patientId:
+          type: integer
+        assessments:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              globalScore:
+                type: number
+              domainScores:
+                $ref: "#/components/schemas/DomainScores"
+              riskLevel:
+                type: string
+            required:
+              - date
+              - globalScore
+              - domainScores
+              - riskLevel
+      required:
+        - patientId
+        - assessments
+
+    RiskSummary:
+      type: object
+      properties:
+        red:
+          type: array
+          items:
+            $ref: "#/components/schemas/Patient"
+        orange:
+          type: array
+          items:
+            $ref: "#/components/schemas/Patient"
+        green:
+          type: array
+          items:
+            $ref: "#/components/schemas/Patient"
+      required:
+        - red
+        - orange
+        - green
